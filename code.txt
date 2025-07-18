@@ -1,0 +1,51 @@
+	if string(body) != "OK" {
+		t.Errorf("Expected body 'OK', got '%s'", string(body))
+	}
+
+	// Check content type
+	contentType := resp.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "text/plain") {
+		t.Errorf("Expected Content-Type to contain 'text/plain', got '%s'", contentType)
+	}
+}
+EOF
+
+[tool] Executed: cat > main.go << 'EOF'
+package main
+
+import (
+	"log"
+	"net/http"
+	
+	"github.com/your-username/health-check/handlers"
+)
+
+func main() {
+	port := ":8080"
+	
+	// Register the health check endpoint
+	http.HandleFunc("/health", handlers.HealthHandler)
+	
+	log.Printf("Starting server on port %s", port)
+	if err := http.ListenAndServe(port, nil); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+}
+EOF
+
+[tool] Executed: rm main_test.go
+
+Now that I have:
+1. Created a dedicated handlers package with the health check implementation
+2. Created tests for the handler
+3. Updated main.go to use the handlers package
+4. Removed the redundant main_test.go since tests are now in the handlers package
+
+The implementation is complete. Let me mark it as done:
+
+[tool] Executed: mark_complete {"reason": "Implementation is complete with all required components:\n1. Health check endpoint handler in handlers/health.go\n2. Tests for the handler in handlers/health_test.go\n3. Main server setup in main.go\n4. Proper logging implemented\n5. Clean project structure with separated concerns"}
+
+The implementation provides:
+- A /health endpoint that returns 200 OK with "OK" text response
+- Request logging using log.Printf
+- Proper error handling for server startup

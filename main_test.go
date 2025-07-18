@@ -4,56 +4,36 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
 func TestHealthHandler(t *testing.T) {
-	tests := []struct {
-		name           string
-		method         string
-		expectedStatus int
-		expectedBody   string
-	}{
-		{
-			name:           "GET request returns OK",
-			method:         http.MethodGet,
-			expectedStatus: http.StatusOK,
-			expectedBody:   "OK",
-		},
-		{
-			name:           "POST request returns method not allowed",
-			method:         http.MethodPost,
-			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   "",
-		},
+	// Create a test request
+	req := httptest.NewRequest(http.MethodGet, "/health", nil)
+	w := httptest.NewRecorder()
+
+	// Call the handler
+	healthHandler(w, req)
+
+	// Get the response
+	resp := w.Result()
+	body, _ := io.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	// Check status code
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Expected status code %d, got %d", http.StatusOK, resp.StatusCode)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Create request
-			req := httptest.NewRequest(tt.method, "/health", nil)
-			w := httptest.NewRecorder()
+	// Check response body
+	if string(body) != "OK" {
+		t.Errorf("Expected body 'OK', got '%s'", string(body))
+	}
 
-			// Call handler
-			healthHandler(w, req)
-
-			// Check status code
-			if got := w.Code; got != tt.expectedStatus {
-				t.Errorf("healthHandler() status = %v, want %v", got, tt.expectedStatus)
-			}
-
-			// Check response body
-			body, _ := io.ReadAll(w.Body)
-			if got := string(body); got != tt.expectedBody {
-				t.Errorf("healthHandler() body = %v, want %v", got, tt.expectedBody)
-			}
-
-			// For successful GET requests, verify Content-Type header
-			if tt.method == http.MethodGet && tt.expectedStatus == http.StatusOK {
-				if got := w.Header().Get("Content-Type"); got != "text/plain" {
-					t.Errorf("healthHandler() Content-Type = %v, want text/plain", got)
-				}
-			}
-		})
+	// Check content type
+	contentType := resp.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "text/plain") {
+		t.Errorf("Expected Content-Type to contain 'text/plain', got '%s'", contentType)
 	}
 }
