@@ -8,29 +8,16 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/metal-toolbox/audito-maldito/handlers"
 )
-
-func healthHandler(w http.ResponseWriter, r *http.Request) {
-	// Log the incoming request
-	log.Printf("Received health check request from %s", r.RemoteAddr)
-
-	// Set content type header
-	w.Header().Set("Content-Type", "text/plain")
-	
-	// Write response
-	w.WriteHeader(http.StatusOK)
-	_, err := w.Write([]byte("OK"))
-	if err != nil {
-		log.Printf("Error writing response: %v", err)
-	}
-}
 
 func main() {
 	// Create a new serve mux
 	mux := http.NewServeMux()
 	
 	// Register the health check endpoint
-	mux.HandleFunc("/health", healthHandler)
+	mux.HandleFunc("/health", handlers.Health)
 	
 	// Create server with reasonable timeouts
 	server := &http.Server{
